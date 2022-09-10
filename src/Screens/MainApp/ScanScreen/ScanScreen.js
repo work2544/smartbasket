@@ -93,11 +93,8 @@ const ScanScreen = () => {
   };
 
   const addToCart = async rawValueBarcode => {
-    try {
       const data = await getAPI(rawValueBarcode[0].rawValue);
-    } catch (error) {
-      return;
-    }
+   
     if(data===undefined){
       return;
     }
