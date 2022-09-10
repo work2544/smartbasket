@@ -113,7 +113,7 @@ const ScanScreen = () => {
      }
      navigation.navigate('Cart');
     }
-console.warn("There is error try again");
+   else console.warn("There is error try again");
   };
   return (
     device != null &&
