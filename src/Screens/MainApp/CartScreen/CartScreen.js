@@ -4,14 +4,18 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CartScreen = ({navigation, route}) => {
   const [product, setProduct] = useState([]);
-  const [total, setTotal] = useState();
-  const [totaldiscount, setTotalDiscount] = useState();
+  const [total, setTotal] = useState(0);
+ // const [totaldiscount, setTotalDiscount] = useState();
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchProduct();
     });
     return unsubscribe;
   }, [navigation]);
+  useEffect(()=>{
+    getTotal(product)
+  },[product]
+  )
   const fetchProduct = async () => {
     console.log('call fetch');
     let items = await AsyncStorage.getItem('@cartItems');
@@ -32,22 +36,19 @@ const CartScreen = ({navigation, route}) => {
   };
 
   const getTotal = productData => {
+    console.log("run getottal")
     let curtotal = 0;
-    let curdiscount = 0;
     if (product) {
       for (let index = 0; index < productData.length; index++) {
         const element = productData[index];
-        const RegularPrice = element.regularPrice?.value;
-        const Discount = element.discount?.amountOff;
-        curtotal += RegularPrice;
-        curdiscount += Discount;
+        const FinalPrice = element[1].finalPrice?.value;
+        curtotal += FinalPrice;
       }
       setTotal(curtotal);
-      setTotalDiscount(curdiscount);
     }
   };
   const RenderProduct=((data,index)=>{
-    getTotal(data[1].finalPrice.value);
+   
     return (
       <View key={index}>
         <Text style={{color:'black',fontSize:10}}>{data[0]}</Text>
@@ -66,8 +67,8 @@ const CartScreen = ({navigation, route}) => {
   return (
     <View>
       {product?product.map(RenderProduct):null}
-      <Text style={{color:'black',fontSize:10}}>{totaldiscount}</Text>
-      <Text style={{color:'black',fontSize:10}}>{total}</Text>
+      {/* <Text style={{color:'black',fontSize:20}}>{totaldiscount}</Text> */}
+      <Text style={{color:'black',fontSize:20}}>{total}</Text>
     </View>
   );
 };

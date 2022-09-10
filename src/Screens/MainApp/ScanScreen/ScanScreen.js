@@ -4,7 +4,6 @@ import {StyleSheet, Text} from 'react-native';
 import {useCameraDevices, Camera} from 'react-native-vision-camera';
 import {useScanBarcodes, BarcodeFormat} from 'vision-camera-code-scanner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-//import data from '../../../database/example1.json'
 import data from '../../../database/database.json';
 import bigdata from '../../../database/example2.json';
 const ScanScreen = () => {
