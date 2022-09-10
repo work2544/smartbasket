@@ -85,15 +85,10 @@ const ScanScreen = () => {
   };
   //fetching API
   const getAPI = async barcode => {
-    await LotusInstanceAPI.get('/proc/product/api/v1/products/details')
-      .then(resp => {
-        setJsonObject([resp.data.mediaGallery, resp.data.regularPrice]);
-        setFetching(false);
-      })
-      .catch(error => {
-        console.log(error);
-        setFetching(false);
-      });
+    const resp=await LotusInstanceAPI(3302997);
+    const data=resp.data.data
+    setJsonObject([data.mediaGallery,data.priceRange])
+    console.log(first)
   };
   //convert to JSON STRING and store to @cartItems
   const storeData = async value => {
