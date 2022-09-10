@@ -5,12 +5,16 @@ import {useCameraDevices, Camera} from 'react-native-vision-camera';
 import {useScanBarcodes, BarcodeFormat} from 'vision-camera-code-scanner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const ScanScreen = () => {
+  const axios = require('axios').default;
   const isFocused = useIsFocused();
   const devices = useCameraDevices();
   const device = devices.back;
   const navigation = useNavigation();
   const [isScanned, setScanned] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
+  const [database, setDatabase] = useState();
+  const RNFS = require('react-native-fs');
+
   //init barcode format
   const [frameProcessor, barcodes] = useScanBarcodes(
     [BarcodeFormat.UPC_A, BarcodeFormat.UPC_E],
@@ -18,9 +22,22 @@ const ScanScreen = () => {
       checkInverted: false,
     },
   );
+  //read database
+  readFile = () => {
+    RNFS.readFile('src/database/database.json', 'ascii')
+      .then(res => {
+        console.log(res);
+        //const d = JSON.parse(res);
+        //setDatabase();
+      })
+      .catch(err => {
+        console.log(err.message, err.code);
+      });
+  };
   //check camera permission
   useEffect(() => {
     checkCameraPermission();
+    readFile();
   }, []);
   const checkCameraPermission = async () => {
     const status = await Camera.getCameraPermissionStatus();
@@ -38,33 +55,51 @@ const ScanScreen = () => {
       await barcodes.map((barcode, idx) => ({barcode}));
     }
     setScanned(true);
+
+    //need to fetch from api first
     addToCart(barcodes[0].rawValue);
   };
+
+  const fetchdatafromAPI = async (sku_id) => {
+    const instanceAPI = axios.create({
+      baseURL:'https://ppe-api.lotuss.com/proc/product/api/v1/products/details​',
+      params: {
+        websiteCode:thailand_hy,
+        sku:sku_id,
+        storeId:5016
+      },
+      headers:{
+        'accept-language':'en',
+        'Authorization':`BasicZWY4ZTZjMjgzODdlNGVjYTlkM2UxMTU1MDQxMjgyYzE6MEU1NTg0QzUxZTdBNDBEODkzMDUxZGExY2NEQTg2ZTY=​`,
+      },
+      
+    }
+    )
+  };
   //convert to JSON STRING and store to @cartItems
-  const storeData = async (value) => {
+  const storeData = async value => {
     try {
-      const jsonValue = JSON.stringify(value)
-      await AsyncStorage.setItem('@cartItems', jsonValue)
+      const jsonValue = JSON.stringify(value);
+      await AsyncStorage.setItem('@cartItems', jsonValue);
     } catch (e) {
       // saving error
-      console.warn('error'+e)
+      console.warn('error' + e);
     }
-  }
+  };
 
   const addToCart = async rawValueBarcode => {
     setScanned(false);
     //get from @cartItems and convert to js object
-    let itemArray =await AsyncStorage.getItem('@cartItems');
+    let itemArray = await AsyncStorage.getItem('@cartItems');
     itemArray = JSON.parse(itemArray);
-    if(itemArray!==null){
+    if (itemArray !== null) {
       let array = itemArray;
       array.push(rawValueBarcode);
-      storeData(array)
-    }
-    else{
-      let array=[]
-      array.push(rawValueBarcode)
-      storeData(array)
+      storeData(array);
+    } else {
+      let array = [];
+      array.push(rawValueBarcode);
+      storeData(array);
     }
     navigation.navigate('Cart', {barcodeNo: rawValueBarcode});
     return;
