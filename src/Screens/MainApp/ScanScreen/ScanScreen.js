@@ -5,7 +5,7 @@ import {useCameraDevices, Camera} from 'react-native-vision-camera';
 import {useScanBarcodes, BarcodeFormat} from 'vision-camera-code-scanner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const ScanScreen = () => {
-  const axios = require('axios').default;
+  const axios = require('axios');
   const isFocused = useIsFocused();
   const devices = useCameraDevices();
   const device = devices.back;
@@ -25,23 +25,10 @@ const ScanScreen = () => {
     },
   );
 
-  //read database
-  readFile = () => {
-    // RNFS.readFile('src/database/database.json', 'ascii')
-    //   .then(res => {
-    //     console.log(res);
-    //     //const d = JSON.parse(res);
-    //     //setDatabase();
-    //   })
-    //   .catch(err => {
-    //     console.log(err.message, err.code);
-    //   });
-  };
 
   //check camera permission
   useEffect(() => {
     checkCameraPermission();
-    readFile();
   }, []);
   const checkCameraPermission = async () => {
     const status = await Camera.getCameraPermissionStatus();
@@ -63,8 +50,7 @@ const ScanScreen = () => {
     setScanned(true);
 
     //need to fetch from api first
-    console.log(await getAPI(barcodes));
-    // addToCart(barcodes);
+    addToCart(barcodes);
   };
   //create instanceAPI
   const LotusInstanceAPI = async sku_id => {
@@ -81,15 +67,18 @@ const ScanScreen = () => {
           'Basic ZWY4ZTZjMjgzODdlNGVjYTlkM2UxMTU1MDQxMjgyYzE6MEU1NTg0QzUxZTdBNDBEODkzMDUxZGExY2NEQTg2ZTY=',
       },
     });
-    return instanceAPI;
+    return await instanceAPI.get('/proc/product/api/v1/products/details');
   };
+
+
   //fetching API
   const getAPI = async barcode => {
-    const resp=await LotusInstanceAPI(3302997);
-    const data=resp.data.data
-    setJsonObject([data.mediaGallery,data.priceRange])
-    console.log(first)
+    console.log("barcode in getAPI : "+barcode)
+    const resp=await LotusInstanceAPI(3302997)
+    return resp.data.data
   };
+
+
   //convert to JSON STRING and store to @cartItems
   const storeData = async value => {
     try {
@@ -102,20 +91,25 @@ const ScanScreen = () => {
   };
 
   const addToCart = async rawValueBarcode => {
-    setScanned(false);
-    //get from @cartItems and convert to js object
-    let itemArray = await AsyncStorage.getItem('@cartItems');
-    itemArray = JSON.parse(itemArray);
-    if (itemArray !== null) {
-      let array = itemArray;
-      array.push(rawValueBarcode);
-      storeData(array);
-    } else {
-      let array = [];
-      array.push(rawValueBarcode);
-      storeData(array);
-    }
-    if (!fetching) navigation.navigate('Cart', {barcodeNo: rawValueBarcode});
+    const data=await getAPI(rawValueBarcode[0].rawValue)
+    const pricedata=data.priceRange.minimumPrice
+    const mediaurldata=data.mediaGallery[0].url
+    console.log(pricedata)
+    console.log(mediaurldata)
+     //get from @cartItems and convert to js object
+    //setScanned(false);
+    // let itemArray = await AsyncStorage.getItem('@cartItems');
+    // itemArray = JSON.parse(itemArray);
+    // if (itemArray !== null) {
+    //   let array = itemArray;
+    //   array.push(rawValueBarcode);
+    //   storeData(array);
+    // } else {
+    //   let array = [];
+    //   array.push(rawValueBarcode);
+    //   storeData(array);
+    // }
+    // if (!fetching) navigation.navigate('Cart', {barcodeNo: rawValueBarcode});
     return;
   };
   return (
