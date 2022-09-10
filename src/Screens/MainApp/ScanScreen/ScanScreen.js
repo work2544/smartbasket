@@ -93,7 +93,14 @@ const ScanScreen = () => {
   };
 
   const addToCart = async rawValueBarcode => {
-    const data = await getAPI(rawValueBarcode[0].rawValue);
+    try {
+      const data = await getAPI(rawValueBarcode[0].rawValue);
+    } catch (error) {
+      return;
+    }
+    if(data===undefined){
+      return;
+    }
     const productname=data.name;
     const pricedata = data.priceRange.minimumPrice;
     const mediaurldata = data.mediaGallery[0].url;

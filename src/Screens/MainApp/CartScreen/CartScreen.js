@@ -17,7 +17,6 @@ import CustomButton from '../../components/CustomButton';
 const CartScreen = ({navigation, route}) => {
   const [product, setProduct] = useState([]);
   const [total, setTotal] = useState(0);
-  // const [totaldiscount, setTotalDiscount] = useState();
   useEffect(() => {
     const unsubscribe = navigation.addListener('focus', () => {
       fetchProduct();
