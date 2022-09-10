@@ -5,10 +5,14 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Button,
+  SectionList,
 } from 'react-native';
 import React, {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Ionicons from 'react-native-vector-icons/Ionicons';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import CustomButton from '../../components/CustomButton';
 
 const CartScreen = ({navigation, route}) => {
   const [product, setProduct] = useState([]);
@@ -64,7 +68,6 @@ const CartScreen = ({navigation, route}) => {
           marginVertical: 7,
           flexDirection: 'row',
           alignItems: 'center',
-          
         }}>
         <View
           style={{
@@ -86,10 +89,9 @@ const CartScreen = ({navigation, route}) => {
               <Text style={styles.CurPrice}>
                 ฿{data[1].finalPrice.value}&nbsp;&nbsp;
               </Text>
-              <Text style={styles.oldPrice}>{data[1].regularPrice.value}</Text>
+              {parseInt(data[1].finalPrice.value)!==parseInt(data[1].regularPrice.value)?<Text style={styles.oldPrice}>{data[1].regularPrice.value}</Text>:null}
             </View>
           </View>
-          
           <View
             style={{
               flexDirection: 'row',
@@ -99,7 +101,7 @@ const CartScreen = ({navigation, route}) => {
               borderWidth: 1,
               opacity: 0.5,
               justifyContent: 'space-between',
-              width:'30%'
+              width: '45%',
             }}>
             <Ionicons
               name="remove-circle-outline"
@@ -109,24 +111,38 @@ const CartScreen = ({navigation, route}) => {
               name="add-circle-outline"
               style={styles.icontext}></Ionicons>
           </View>
-
         </View>
       </TouchableOpacity>
     );
   };
 
   return (
-    <View style={{width: '100%', height: '100%', backgroundColor: 'white'}}>
+    <SafeAreaView edges={['top', 'left', 'right','bottom']}>
+      <View
+        style={{
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+          flexShrink: 1,
+          justifyContent: 'flex-end',
+          alignItems: 'flex-start',
+        }}>
+        <Text style={styles.totaltext}>Total : {total}</Text>
+
+        <CustomButton onPress={() => {}} text="PAY" type="PAY"></CustomButton>
+      </View>
+
       <ScrollView>
-        <View>
-          <Text style={styles.mycartstyle}>My cart</Text>
-          {product ? product.map(RenderProduct) : null}
+        <View style={{width: '100%', height: '100%', backgroundColor: 'white'}}>
+          <View>{product ? product.map(RenderProduct) : null}</View>
         </View>
       </ScrollView>
-
-      {/* <Text style={{color:'black',fontSize:20}}>{totaldiscount}</Text> */}
-      <Text style={{color: 'black', fontSize: 20}}>{total}</Text>
-    </View>
+      <View
+        styles={{
+          flexDirection: 'row',
+          alignContent: 'space-between',
+          flex: 1,
+        }}></View>
+    </SafeAreaView>
   );
 };
 const styles = StyleSheet.create({
@@ -163,6 +179,13 @@ const styles = StyleSheet.create({
   icontext: {
     fontSize: 32,
     color: 'black',
+  },
+  totaltext: {
+    flexWrap: 'wrap',
+    color: 'black',
+    fontSize: 19,
+    alignSelf: 'center',
+    marginRight: 50,
   },
 });
 export default CartScreen;

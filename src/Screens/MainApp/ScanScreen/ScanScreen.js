@@ -14,7 +14,7 @@ const ScanScreen = () => {
   const navigation = useNavigation();
   const [isScanned, setScanned] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
-  const [fetching, setFetching] = useState(true);
+  const [isError, setError] = useState(false);
 
   //init barcode format
   const [frameProcessor, barcodes] = useScanBarcodes(
@@ -72,8 +72,13 @@ const ScanScreen = () => {
   const getAPI = async barcode => {
     console.log('barcode in getAPI : ' + barcode);
     console.log('sku in getAPI : ' + data[barcode]);
-    const resp = await LotusInstanceAPI(data[barcode]);
-    return resp.data.data;
+    try{
+      const resp = await LotusInstanceAPI(data[barcode]);
+      return resp.data.data;
+    }
+    catch(err){
+      setError(true);
+    }
   };
 
   //convert to JSON STRING and store to @cartItems
@@ -92,25 +97,23 @@ const ScanScreen = () => {
     const productname=data.name;
     const pricedata = data.priceRange.minimumPrice;
     const mediaurldata = data.mediaGallery[0].url;
-    console.log(productname);
-    console.log(pricedata);
-    console.log(mediaurldata);
     //get from @cartItems and convert to js object
     setScanned(false);
-    setFetching(false);
-     let itemArray = await AsyncStorage.getItem('@cartItems');
-     itemArray = JSON.parse(itemArray);
-    if (itemArray !== null) {
-      let array = itemArray;
-      array.push([productname,pricedata,mediaurldata]);
-      storeData(array);
-    } else {
-      let array = [];
-      array.push([productname,pricedata,mediaurldata]);
-      storeData(array);
+    if(!isError){
+      let itemArray = await AsyncStorage.getItem('@cartItems');
+      itemArray = JSON.parse(itemArray);
+     if (itemArray !== null) {
+       let array = itemArray;
+       array.push([productname,pricedata,mediaurldata]);
+       storeData(array);
+     } else {
+       let array = [];
+       array.push([productname,pricedata,mediaurldata]);
+       storeData(array);
+     }
+     navigation.navigate('Cart');
     }
-    navigation.navigate('Cart');
-    return;
+console.warn("There is error try again");
   };
   return (
     device != null &&
