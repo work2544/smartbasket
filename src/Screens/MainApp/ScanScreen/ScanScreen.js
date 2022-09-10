@@ -13,6 +13,8 @@ const ScanScreen = () => {
   const [isScanned, setScanned] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
   const [database, setDatabase] = useState();
+  const [jsonObject, setJsonObject] = useState();
+  const [fetching, setFetching] = useState(true);
   const RNFS = require('react-native-fs');
 
   //init barcode format
@@ -22,18 +24,20 @@ const ScanScreen = () => {
       checkInverted: false,
     },
   );
+
   //read database
   readFile = () => {
-    RNFS.readFile('src/database/database.json', 'ascii')
-      .then(res => {
-        console.log(res);
-        //const d = JSON.parse(res);
-        //setDatabase();
-      })
-      .catch(err => {
-        console.log(err.message, err.code);
-      });
+    // RNFS.readFile('src/database/database.json', 'ascii')
+    //   .then(res => {
+    //     console.log(res);
+    //     //const d = JSON.parse(res);
+    //     //setDatabase();
+    //   })
+    //   .catch(err => {
+    //     console.log(err.message, err.code);
+    //   });
   };
+
   //check camera permission
   useEffect(() => {
     checkCameraPermission();
@@ -43,12 +47,14 @@ const ScanScreen = () => {
     const status = await Camera.getCameraPermissionStatus();
     setHasPermission(status === 'authorized');
   };
+
   //use effect but not init render
   const didMount = useRef(false);
   useEffect(() => {
     if (didMount.current && barcodes.length !== 0) getBarcode(barcodes);
     else didMount.current = true;
   }, [barcodes]);
+
   //get the barcode from the frame
   const getBarcode = async barcodes => {
     if (!isScanned) {
@@ -57,24 +63,37 @@ const ScanScreen = () => {
     setScanned(true);
 
     //need to fetch from api first
-    addToCart(barcodes[0].rawValue);
+    console.log(await getAPI(barcodes));
+    // addToCart(barcodes);
   };
-
-  const fetchdatafromAPI = async (sku_id) => {
+  //create instanceAPI
+  const LotusInstanceAPI = async sku_id => {
     const instanceAPI = axios.create({
-      baseURL:'https://ppe-api.lotuss.com/proc/product/api/v1/products/details​',
+      baseURL: 'https://ppe-api.lotuss.com',
       params: {
-        websiteCode:thailand_hy,
-        sku:sku_id,
-        storeId:5016
+        websiteCode: 'thailand_hy',
+        sku: sku_id,
+        storeId: 5016,
       },
-      headers:{
-        'accept-language':'en',
-        'Authorization':`BasicZWY4ZTZjMjgzODdlNGVjYTlkM2UxMTU1MDQxMjgyYzE6MEU1NTg0QzUxZTdBNDBEODkzMDUxZGExY2NEQTg2ZTY=​`,
+      headers: {
+        'accept-language': 'en',
+        Authorization:
+          'Basic ZWY4ZTZjMjgzODdlNGVjYTlkM2UxMTU1MDQxMjgyYzE6MEU1NTg0QzUxZTdBNDBEODkzMDUxZGExY2NEQTg2ZTY=',
       },
-      
-    }
-    )
+    });
+    return instanceAPI;
+  };
+  //fetching API
+  const getAPI = async barcode => {
+    await LotusInstanceAPI.get('/proc/product/api/v1/products/details')
+      .then(resp => {
+        setJsonObject([resp.data.mediaGallery, resp.data.regularPrice]);
+        setFetching(false);
+      })
+      .catch(error => {
+        console.log(error);
+        setFetching(false);
+      });
   };
   //convert to JSON STRING and store to @cartItems
   const storeData = async value => {
@@ -101,7 +120,7 @@ const ScanScreen = () => {
       array.push(rawValueBarcode);
       storeData(array);
     }
-    navigation.navigate('Cart', {barcodeNo: rawValueBarcode});
+    if (!fetching) navigation.navigate('Cart', {barcodeNo: rawValueBarcode});
     return;
   };
   return (
