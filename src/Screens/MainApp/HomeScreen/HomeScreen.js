@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import {Camera} from 'react-native-vision-camera';
-import {Button,Text} from 'react-native';
-
+import {Text} from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const HomeScreen = ({ navigation }) => {
+
+ const clearAsyncStorage = async() => {
+    AsyncStorage.clear();
+}
   const checkCameraPermission = async () => {
     let status = await Camera.getCameraPermissionStatus();
     if (status !== 'authorized') {
@@ -19,6 +23,7 @@ const HomeScreen = ({ navigation }) => {
   
   useEffect(() => {
     checkCameraPermission();
+    clearAsyncStorage();
   }, []);
     return (
      <Text>Home</Text>

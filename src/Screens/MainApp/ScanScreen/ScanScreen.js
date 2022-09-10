@@ -4,6 +4,9 @@ import {StyleSheet, Text} from 'react-native';
 import {useCameraDevices, Camera} from 'react-native-vision-camera';
 import {useScanBarcodes, BarcodeFormat} from 'vision-camera-code-scanner';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+//import data from '../../../database/example1.json'
+import data from '../../../database/database.json';
+import bigdata from '../../../database/example2.json';
 const ScanScreen = () => {
   const axios = require('axios');
   const isFocused = useIsFocused();
@@ -12,10 +15,7 @@ const ScanScreen = () => {
   const navigation = useNavigation();
   const [isScanned, setScanned] = useState(false);
   const [hasPermission, setHasPermission] = useState(false);
-  const [database, setDatabase] = useState();
-  const [jsonObject, setJsonObject] = useState();
   const [fetching, setFetching] = useState(true);
-  const RNFS = require('react-native-fs');
 
   //init barcode format
   const [frameProcessor, barcodes] = useScanBarcodes(
@@ -24,7 +24,6 @@ const ScanScreen = () => {
       checkInverted: false,
     },
   );
-
 
   //check camera permission
   useEffect(() => {
@@ -70,14 +69,13 @@ const ScanScreen = () => {
     return await instanceAPI.get('/proc/product/api/v1/products/details');
   };
 
-
   //fetching API
   const getAPI = async barcode => {
-    console.log("barcode in getAPI : "+barcode)
-    const resp=await LotusInstanceAPI(3302997)
-    return resp.data.data
+    console.log('barcode in getAPI : ' + barcode);
+    console.log('sku in getAPI : ' + data[barcode]);
+    const resp = await LotusInstanceAPI(data[barcode]);
+    return resp.data.data;
   };
-
 
   //convert to JSON STRING and store to @cartItems
   const storeData = async value => {
@@ -91,25 +89,28 @@ const ScanScreen = () => {
   };
 
   const addToCart = async rawValueBarcode => {
-    const data=await getAPI(rawValueBarcode[0].rawValue)
-    const pricedata=data.priceRange.minimumPrice
-    const mediaurldata=data.mediaGallery[0].url
-    console.log(pricedata)
-    console.log(mediaurldata)
-     //get from @cartItems and convert to js object
-    //setScanned(false);
-    // let itemArray = await AsyncStorage.getItem('@cartItems');
-    // itemArray = JSON.parse(itemArray);
-    // if (itemArray !== null) {
-    //   let array = itemArray;
-    //   array.push(rawValueBarcode);
-    //   storeData(array);
-    // } else {
-    //   let array = [];
-    //   array.push(rawValueBarcode);
-    //   storeData(array);
-    // }
-    // if (!fetching) navigation.navigate('Cart', {barcodeNo: rawValueBarcode});
+    const data = await getAPI(rawValueBarcode[0].rawValue);
+    const productname=data.name;
+    const pricedata = data.priceRange.minimumPrice;
+    const mediaurldata = data.mediaGallery[0].url;
+    console.log(productname);
+    console.log(pricedata);
+    console.log(mediaurldata);
+    //get from @cartItems and convert to js object
+    setScanned(false);
+    setFetching(false);
+     let itemArray = await AsyncStorage.getItem('@cartItems');
+     itemArray = JSON.parse(itemArray);
+    if (itemArray !== null) {
+      let array = itemArray;
+      array.push([productname,pricedata,mediaurldata]);
+      storeData(array);
+    } else {
+      let array = [];
+      array.push([productname,pricedata,mediaurldata]);
+      storeData(array);
+    }
+    navigation.navigate('Cart');
     return;
   };
   return (

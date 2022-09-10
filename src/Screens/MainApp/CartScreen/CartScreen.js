@@ -1,4 +1,4 @@
-import {View, Text} from 'react-native';
+import {View, Text,Image,StyleSheet} from 'react-native';
 import React, {useEffect, useState} from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -47,18 +47,41 @@ const CartScreen = ({navigation, route}) => {
     }
   };
   const RenderProduct=((data,index)=>{
+    getTotal(data[1].finalPrice.value);
     return (
       <View key={index}>
-        <Text style={{color:'red',fontSize:30}}>{data}</Text>
+        <Text style={{color:'black',fontSize:10}}>{data[0]}</Text>
+         <Image
+          style={styles.logo}
+          source={{uri:data[2]}}
+        />
+        <Text style={{color:'black',fontSize:10}}>{data[1].regularPrice.value}</Text> 
+        <Text style={{color:'red',fontSize:10}}>{data[1].discount.amountOff}</Text> 
+        <Text style={{color:'green',fontSize:10}}>{data[1].finalPrice.value}</Text> 
       </View>
+    
     );
       })
+
   return (
     <View>
-      {product?product.map(RenderProduct):{}}
-      <Text style={{color:'black',fontSize:10}}>{route.params?.barcodeNo}</Text>
+      {product?product.map(RenderProduct):null}
+      <Text style={{color:'black',fontSize:10}}>{totaldiscount}</Text>
+      <Text style={{color:'black',fontSize:10}}>{total}</Text>
     </View>
   );
 };
-
+const styles = StyleSheet.create({
+  container: {
+    paddingTop: 50,
+  },
+  tinyLogo: {
+    width: 50,
+    height: 50,
+  },
+  logo: {
+    width: 66,
+    height: 58,
+  },
+});
 export default CartScreen;
